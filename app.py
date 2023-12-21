@@ -15,7 +15,7 @@ data_dir = "data"
 
 image_exts = ['jpeg', 'jpg', 'bmp', 'png']
 
-for image_class in ow.listdir(data_dir):
+for image_class in os.listdir(data_dir):
     for image in os.listdir(os.path.join(data_dir, image_class)):
         image_path = os.path.join(data_dir, image_class, image)
         try:
@@ -74,3 +74,18 @@ model.add(Dense(1, activation='sigmoid'))
 model.compile('adam', loss=tf.losses.BinaryCrossentropy(), metrix=['accuracy'])
 
 model.summary()
+
+# Train model
+
+logdir='logs'
+
+tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
+
+hist = model.fit(train, epochs=20, validation_data=val, callbacks=[tensorboard_callback])
+
+fig = plt.figure()
+plt.plot(hist.history['loss'], color='teal', label='loss')
+plt.plot(hist.history['val_loss'], color='orange', label='val_loss')
+fig.suptitle('Loss', fontsize=20)
+plt.legend(loc="upper left")
+plt.show()
