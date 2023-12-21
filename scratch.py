@@ -1,18 +1,51 @@
-points = [(0, 0)]
-dirs = {"U": (-1, 0), "D": (1, 0), "L": (0, -1), "R": (0, 1)}
+block1, _ = open("19.txt").read().split("\n\n")
 
-b = 0
+workflows = {}
 
-for line in open("18.txt"):
-    _, _, x = line.split()
-    x = x[2:-1]
-    dr, dc = dirs["RDLU"[int(x[-1])]]
-    n = int(x[:-1], 16)
-    b += n
-    r, c = points[-1]
-    points.append((r + dr * n, c + dc * n))
+for line in block1.splitlines():
+    name, rest = line[:-1].split("{")
+    rules = rest.split(",")
+    workflows[name] = ([], rules.pop())
+    for rule in rules:
+        comparison, target = rule.split(":")
+        key = comparison[0]
+        cmp = comparison[1]
+        n = int(comparison[2:])
+        workflows[name][0].append((key, cmp, n, target))
 
-A = abs(sum(points[i][0] * (points[i - 1][1] - points[(i + 1) % len(points)][1]) for i in range(len(points)))) // 2
-i = A - b // 2 + 1
+def count(ranges, name = "in"):
+    if name == "R":
+        return 0
+    if name == "A":
+        product = 1
+        for lo, hi in ranges.values():
+            product *= hi - lo + 1
+        return product
+    
+    rules, fallback = workflows[name]
 
-print(i + b)
+    total = 0
+
+    for key, cmp, n, target in rules:
+        lo, hi = ranges[key]
+        if cmp == "<":
+            T = (lo, min(n - 1, hi))
+            F = (max(n, lo), hi)
+        else:
+            T = (max(n + 1, lo), hi)
+            F = (lo, min(n, hi))
+        if T[0] <= T[1]:
+            copy = dict(ranges)
+            copy[key] = T
+            total += count(copy, target)
+        if F[0] <= F[1]:
+            ranges = dict(ranges)
+            ranges[key] = F
+        else:
+            break
+    else:
+        total += count(ranges, fallback)
+            
+    return total
+
+print(count({key: (1, 4000) for key in "xmas"}))
