@@ -1,51 +1,11 @@
-block1, _ = open("19.txt").read().split("\n\n")
+import os
 
-workflows = {}
+folder_path = "tracks_data/deer"
 
-for line in block1.splitlines():
-    name, rest = line[:-1].split("{")
-    rules = rest.split(",")
-    workflows[name] = ([], rules.pop())
-    for rule in rules:
-        comparison, target = rule.split(":")
-        key = comparison[0]
-        cmp = comparison[1]
-        n = int(comparison[2:])
-        workflows[name][0].append((key, cmp, n, target))
+# List all items (files and directories) in the specified folder
+items = os.listdir(folder_path)
 
-def count(ranges, name = "in"):
-    if name == "R":
-        return 0
-    if name == "A":
-        product = 1
-        for lo, hi in ranges.values():
-            product *= hi - lo + 1
-        return product
-    
-    rules, fallback = workflows[name]
+# Count the number of items in the folder
+num_items = len(items)
 
-    total = 0
-
-    for key, cmp, n, target in rules:
-        lo, hi = ranges[key]
-        if cmp == "<":
-            T = (lo, min(n - 1, hi))
-            F = (max(n, lo), hi)
-        else:
-            T = (max(n + 1, lo), hi)
-            F = (lo, min(n, hi))
-        if T[0] <= T[1]:
-            copy = dict(ranges)
-            copy[key] = T
-            total += count(copy, target)
-        if F[0] <= F[1]:
-            ranges = dict(ranges)
-            ranges[key] = F
-        else:
-            break
-    else:
-        total += count(ranges, fallback)
-            
-    return total
-
-print(count({key: (1, 4000) for key in "xmas"}))
+print(f"There are {num_items} items in the folder.")
